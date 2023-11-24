@@ -1,5 +1,6 @@
 ﻿using System;
-using HtmlAgilityPack;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using lab4_KosinovaAiLib;
 
 class Program
@@ -17,27 +18,27 @@ class Program
     {
         try
         {
-            HtmlWeb web = new HtmlWeb();
-            HtmlDocument doc = web.Load(url);
-
-            var messages = doc.DocumentNode.SelectNodes("//div[@class='message']");
-            if (messages != null)
+            using (IWebDriver driver = new ChromeDriver())
             {
-                foreach (var message in messages)
+                driver.Navigate().GoToUrl(url);
+
+                var messages = driver.FindElements(By.XPath("//div[@class='message']"));
+                if (messages != null)
                 {
-                    var usernameNode = message.SelectSingleNode(".//a[@class='bigusername']");
-                    var commentTextNode = message.SelectSingleNode(".//div[@class='postbody']");
-
-                    if (usernameNode != null && commentTextNode != null)
+                    foreach (var message in messages)
                     {
-                        var username = usernameNode.InnerText.Trim();
-                        var commentText = commentTextNode.InnerText.Trim();
+                        var usernameNode = message.FindElement(By.XPath(".//a[@class='bigusername']"));
+                        var commentTextNode = message.FindElement(By.XPath(".//div[@class='postbody']"));
 
-                  
-                        string messageId = System.Web.HttpUtility.ParseQueryString(new Uri(url).Query)["p"];
+                        if (usernameNode != null && commentTextNode != null)
+                        {
+                            var username = usernameNode.Text.Trim();
+                            var commentText = commentTextNode.Text.Trim();
 
-                  
-                        dbManager.Add(new Message { ID = messageId, Name = username, MessageText = commentText });
+                            string messageId = System.Web.HttpUtility.ParseQueryString(new Uri(url).Query)["p"];
+
+                            dbManager.Add(new Message { ID = Convert.ToInt32(messageId), Name = username, MessageText = commentText });
+                        }
                     }
                 }
             }
