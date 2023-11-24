@@ -1,91 +1,90 @@
-using lab4_KosinovaAiLib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Assert = NUnit.Framework.Assert;
+using System;
+using System.Collections.Generic;
+using Xunit;
 
-namespace lab4_KosinovaAiLibTests
+namespace lab4_KosinovaAiLib.Tests
 {
-    [TestClass]
-        public class DatabaseManagerTests
+    public class DatabaseManagerTests
+    {
+        private readonly string connectionString = @"Data Source=ĞĞ•Ğ¤ĞĞ ;Initial Catalog=Demo;Integrated Security=True";
+
+        [Fact]
+        public void AddAndGetById_Test()
         {
-            private const string ConnectionString = @"Data Source=ÍÅÔÎĞ;Initial Catalog=Demo;Integrated Security=True";
-
-            [TestMethod]
-            public void AddAndGetByID_ShouldAddMessageAndReturnCorrectMessage()
-            {
-             
-                DatabaseManager dbManager = new DatabaseManager(ConnectionString);
-                Message testMessage = new Message { ID = 1, Name = "TestUser", MessageText = "TestMessage" };
-
-              
-                dbManager.Add(testMessage);
-                Message retrievedMessage = dbManager.GetByID(1);
-
-              
-                Assert.IsNotNull(retrievedMessage);
-                Assert.AreEqual(testMessage.ID, retrievedMessage.ID);
-                Assert.AreEqual(testMessage.Name, retrievedMessage.Name);
-                Assert.AreEqual(testMessage.MessageText, retrievedMessage.MessageText);
-
-                dbManager.Delete(1);
-            }
-
-            [TestMethod]
-            public void GetByName_ShouldReturnCorrectMessages()
-            {
-         
-                DatabaseManager dbManager = new DatabaseManager(ConnectionString);
-                Message testMessage1 = new Message { ID = 2, Name = "TestUser1", MessageText = "TestMessage1" };
-                Message testMessage2 = new Message { ID = 3, Name = "TestUser2", MessageText = "TestMessage2" };
-
           
-                dbManager.Add(testMessage1);
-                dbManager.Add(testMessage2);
-                var retrievedMessages = dbManager.GetByName("TestUser");
+            DatabaseManager dbManager = new DatabaseManager(connectionString);
+            Message testMessage = new Message { ID = 1, Name = "TestUser", MessageText = "TestMessage" };
 
-        
-                Assert.IsNotNull(retrievedMessages);
-                Assert.AreEqual(2, retrievedMessages.Count());
-                Assert.IsTrue(retrievedMessages.Any(m => m.ID == testMessage1.ID));
-                Assert.IsTrue(retrievedMessages.Any(m => m.ID == testMessage2.ID));
-
-
-                dbManager.Delete(2);
-                dbManager.Delete(3);
-            }
-
-            [TestMethod]
-            public void Update_ShouldUpdateMessageText()
-            {
-       
-                DatabaseManager dbManager = new DatabaseManager(ConnectionString);
-                Message testMessage = new Message { ID = 4, Name = "TestUser", MessageText = "OriginalText" };
-
-        
-                dbManager.Add(testMessage);
-                dbManager.Update(4, "UpdatedText");
-                Message updatedMessage = dbManager.GetByID(4);
+            
+            dbManager.Add(testMessage);
+            Message retrievedMessage = dbManager.GetByID(1);
 
       
-                Assert.IsNotNull(updatedMessage);
-                Assert.AreEqual("UpdatedText", updatedMessage.MessageText);
+            Assert.NotNull(retrievedMessage);
+            Assert.Equals(testMessage.ID, retrievedMessage.ID);
+            Assert.Equals(testMessage.Name, retrievedMessage.Name);
+            Assert.Equals(testMessage.MessageText, retrievedMessage.MessageText);
+        }
 
-        
-                dbManager.Delete(4);
-            }
+        [Fact]
+        public void GetByName_Test()
+        {
+          
+            DatabaseManager dbManager = new DatabaseManager(connectionString);
+            string testName = "TestUser";
+            Message testMessage1 = new Message { ID = 2, Name = testName, MessageText = "TestMessage1" };
+            Message testMessage2 = new Message { ID = 3, Name = testName, MessageText = "TestMessage2" };
 
-            [TestMethod]
-            public void Delete_ShouldRemoveMessage()
+            // Act
+            dbManager.Add(testMessage1);
+            dbManager.Add(testMessage2);
+            List<Message> messages = dbManager.GetByName(testName);
+
+            Assert.NotNull(messages);
+            Assert.Equals(2, messages.Count);
+
+            foreach (var message in messages)
             {
-           
-                DatabaseManager dbManager = new DatabaseManager(ConnectionString);
-                Message testMessage = new Message { ID = 5, Name = "TestUser", MessageText = "TestMessage" };
-
-
-                dbManager.Add(testMessage);
-                dbManager.Delete(5);
-                Message deletedMessage = dbManager.GetByID(5);
-
-                Assert.IsNull(deletedMessage);
+                Assert.Equals(testName, message.Name);
             }
         }
+
+        [Fact]
+        public void Update_Test()
+        {
+            
+            DatabaseManager dbManager = new DatabaseManager(connectionString);
+            int messageId = 4;
+            Message testMessage = new Message { ID = messageId, Name = "TestUser", MessageText = "OriginalMessage" };
+            dbManager.Add(testMessage);
+
+     
+            string newMessageText = "UpdatedMessage";
+            dbManager.Update(messageId, newMessageText);
+            Message updatedMessage = dbManager.GetByID(messageId);
+
+            
+            Assert.NotNull(updatedMessage);
+            Assert.Equals(messageId, updatedMessage.ID);
+            Assert.Equals(testMessage.Name, updatedMessage.Name);
+            Assert.Equals(newMessageText, updatedMessage.MessageText);
+        }
+
+        [Fact]
+        public void Delete_Test()
+        {
+       
+            DatabaseManager dbManager = new DatabaseManager(connectionString);
+            int messageId = 5;
+            Message testMessage = new Message { ID = messageId, Name = "TestUser", MessageText = "TestMessage" };
+            dbManager.Add(testMessage);
+
+       
+            dbManager.Delete(messageId);
+            Message deletedMessage = dbManager.GetByID(messageId);
+
+        
+            Assert.Null(deletedMessage);
+        }
     }
+}
